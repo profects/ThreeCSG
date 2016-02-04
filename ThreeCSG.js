@@ -16,7 +16,7 @@ window.ThreeBSP = (function() {
             polygons = [];
 
         if ( geometry instanceof THREE.Geometry ) {
-            this.matrix = new THREE.Matrix4;
+            this.matrix = new THREE.Matrix4();
         } else if ( geometry instanceof THREE.BufferGeometry ) {
             //this.matrix = new THREE.Matrix4;
             throw new Error('ThreeBSP: Buffer geometry is not yet unsupported');
@@ -27,7 +27,7 @@ window.ThreeBSP = (function() {
             geometry = geometry.geometry;
         } else if ( geometry instanceof ThreeBSP.Node ) {
             this.tree = geometry;
-            this.matrix = new THREE.Matrix4;
+            this.matrix = new THREE.Matrix4();
             return this;
         } else {
             throw new Error('ThreeBSP: Given geometry is unsupported');
@@ -36,7 +36,7 @@ window.ThreeBSP = (function() {
         for ( i = 0, _length_i = geometry.faces.length; i < _length_i; i++ ) {
             face = geometry.faces[i];
             faceVertexUvs = geometry.faceVertexUvs[0][i];
-            polygon = new ThreeBSP.Polygon;
+            polygon = new ThreeBSP.Polygon();
 
             vertex = geometry.vertices[ face.a ];
                             uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[0].x, faceVertexUvs[0].y ) : null;
@@ -182,13 +182,14 @@ window.ThreeBSP = (function() {
         var i, j,
             matrix = new THREE.Matrix4().getInverse( this.matrix ),
             geometry = new THREE.BufferGeometry(),
-            indices, positions, colors, normals,
+            indices = [], positions = [], colors = [], normals = [], uvs = [],
             polygons = this.tree.allPolygons(),
             polygon_count = polygons.length,
             polygon, polygon_vertex_count,
             vertex_dict = {},
             vertex_idx_a, vertex_idx_b, vertex_idx_c,
-            vertex, face,
+            vertex,
+            vertex_count = 0,
             vertexUvs;
 
         for ( i = 0; i < polygon_count; i++ ) {
@@ -199,46 +200,48 @@ window.ThreeBSP = (function() {
                 vertexUvs = [];
 
                 vertex = polygon.vertices[0];
-                vertexUvs.push( new THREE.Vector2( vertex.uv.x, vertex.uv.y ) );
-                vertex = new THREE.Vector3( vertex.x, vertex.y, vertex.z );
-                vertex.applyMatrix4(matrix);
-
+                vertex.clone().applyMatrix4( matrix ); // TODO: check if clone is needed here
+                uvs.push( vertex.uv.x, vertex.uv.y );
                 if ( typeof vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ] !== 'undefined' ) {
                     vertex_idx_a = vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ];
                 } else {
-                    geometry.vertices.push( vertex );
-                    vertex_idx_a = vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ] = geometry.vertices.length - 1;
+                    positions.push( vertex.x, vertex.y, vertex.z );
+                    vertex_idx_a = vertex_count;
+                    normals.push( vertex.normal.x, vertex.normal.y, vertex.normal.z );
+                    vertex_count ++;
                 }
 
                 vertex = polygon.vertices[j-1];
-                vertexUvs.push( new THREE.Vector2( vertex.uv.x, vertex.uv.y ) );
-                vertex = new THREE.Vector3( vertex.x, vertex.y, vertex.z );
-                vertex.applyMatrix4(matrix);
+                vertex.clone().applyMatrix4( matrix ); // TODO: check if clone is needed here
+                uvs.push( vertex.uv.x, vertex.uv.y );
                 if ( typeof vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ] !== 'undefined' ) {
                     vertex_idx_b = vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ];
                 } else {
-                    geometry.vertices.push( vertex );
-                    vertex_idx_b = vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ] = geometry.vertices.length - 1;
+                    positions.push( vertex.x, vertex.y, vertex.z );
+                    vertex_idx_b = vertex_count;
+                    normals.push( vertex.normal.x, vertex.normal.y, vertex.normal.z );
+                    vertex_count ++;
                 }
 
                 vertex = polygon.vertices[j];
-                vertexUvs.push( new THREE.Vector2( vertex.uv.x, vertex.uv.y ) );
-                vertex = new THREE.Vector3( vertex.x, vertex.y, vertex.z );
-                vertex.applyMatrix4(matrix);
+                vertex.clone().applyMatrix4( matrix ); // TODO: check if clone is needed here
+                uvs.push( vertex.uv.x, vertex.uv.y );
                 if ( typeof vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ] !== 'undefined' ) {
                     vertex_idx_c = vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ];
                 } else {
-                    geometry.vertices.push( vertex );
-                    vertex_idx_c = vertex_dict[ vertex.x + ',' + vertex.y + ',' + vertex.z ] = geometry.vertices.length - 1;
+                    positions.push( vertex.x, vertex.y, vertex.z );
+                    vertex_idx_c = vertex_count;
+                    normals.push( vertex.normal.x, vertex.normal.y, vertex.normal.z );
+                    vertex_count ++;
                 }
 
-                geometry.faces.push( face );
-                geometry.faceVertexUvs[0].push( vertexUvs );
+                indices.push( vertex_idx_a, vertex_idx_b, vertex_idx_c );
             }
         }
+        geometry.addAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
         geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-        geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
-        geometry.addAttribute('normal', new THREE.BufferAttribute(new Float32Array(colors), 3));
+        geometry.addAttribute('normal', new THREE.BufferAttribute(new Float32Array(normals), 3));
+        //geometry.addAttribute('color', new THREE.BufferAttribute(new Float32Array(colors), 3));
         geometry.setIndex( new THREE.BufferAttribute( new Uint32Array( indices ), 1 ) );
 
         return geometry;

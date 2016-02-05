@@ -207,7 +207,7 @@ window.ThreeBSP = (function() {
                 } else {
                     positions.push( vertex.x, vertex.y, vertex.z );
                     vertex_idx_a = vertex_count;
-                    normals.push( vertex.normal.x, vertex.normal.y, vertex.normal.z );
+                    normals.push( polygon.normal.x, polygon.normal.y, polygon.normal.z );
                     vertex_count ++;
                 }
 
@@ -219,7 +219,7 @@ window.ThreeBSP = (function() {
                 } else {
                     positions.push( vertex.x, vertex.y, vertex.z );
                     vertex_idx_b = vertex_count;
-                    normals.push( vertex.normal.x, vertex.normal.y, vertex.normal.z );
+                    normals.push( polygon.normal.x, polygon.normal.y, polygon.normal.z );
                     vertex_count ++;
                 }
 
@@ -231,7 +231,7 @@ window.ThreeBSP = (function() {
                 } else {
                     positions.push( vertex.x, vertex.y, vertex.z );
                     vertex_idx_c = vertex_count;
-                    normals.push( vertex.normal.x, vertex.normal.y, vertex.normal.z );
+                    normals.push( polygon.normal.x, polygon.normal.y, polygon.normal.z );
                     vertex_count ++;
                 }
 
@@ -594,7 +594,8 @@ window.ThreeBSP = (function() {
 
         if ( !this.divider ) return polygons.slice();
 
-        front = back = [];
+        front = [];
+        back = [];
 
         for ( i = 0, polygon_count = polygons.length; i < polygon_count; i++ ) {
             this.divider.splitPolygon( polygons[i], front, back, front, back );

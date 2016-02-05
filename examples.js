@@ -48,33 +48,26 @@ function init() {
 
     material = new THREE.MeshPhongMaterial({color: 0xff0000, shading: THREE.FlatShading, side: THREE.FrontSide});
 
-    mesh = getNonIndexedBox();
-    bsp = new ThreeBSP( mesh.geometry );
-    console.log( bsp );
-    geometry = bsp.toGeometry();
-    console.log( geometry );
-    mesh = new THREE.Mesh( geometry, material );
+    // Box from non indexed buffer geometry
+    var nonIndexedBoxGeometry = getNonIndexedBoxGeometry();
+    nonIndexedBoxGeometry.scale( 20, 20, 20 );
+    var nonIndexedBoxMesh = new THREE.Mesh( nonIndexedBoxGeometry, material );
+    var bsp1 = new ThreeBSP( nonIndexedBoxMesh );
+    //scene.add( nonIndexedBoxMesh );
 
+    // Box from indexed buffer geometry
+    var indexedBoxGeometry = getIndexedBoxGeometry();
+    indexedBoxGeometry.scale( 10, 10, 10 );
+    var indexedBoxMesh = new THREE.Mesh( indexedBoxGeometry, material );
+    indexedBoxMesh.position.set( 0, 12.5, 7.5 );
+    //scene.add( indexedBoxMesh );
 
-    //mesh.position.setY( 50 );
-    //scene.add( mesh );
-    //
-    //var smallBoxGeometry = new THREE.BoxGeometry(10, 10, 10);
-    //var bigBoxGeometry = smallBoxGeometry.clone().scale( 2, 2, 2 );
-    //var smallBox = new THREE.Mesh( smallBoxGeometry );
-    //var bigBox = new THREE.Mesh( bigBoxGeometry );
-    //smallBox.position.set( 0, -5, 5 );
-    //
-    //var result = new ThreeBSP( bigBox ).subtract( new ThreeBSP( smallBox ));
-    //
-    //var bufferGeometry = result.toBufferGeometry();
-    //var bufferMesh = new THREE.Mesh( bufferGeometry, material );
-    //bufferMesh.position.setX( -20 );
-    //scene.add( bufferMesh );
-    //
-    //var geometry = result.toGeometry();
-    //var mesh = new THREE.Mesh( bufferGeometry, material );
-    //mesh.position.setX( 20 );
+    var bsp2 = new ThreeBSP( indexedBoxMesh );
+
+    var geometry = bsp1.subtract( bsp2 ).toBufferGeometry();
+
+    var mesh = new THREE.Mesh( geometry, material );
+
     scene.add( mesh );
 
     animate();
@@ -92,7 +85,7 @@ function animate() {
     render();
 }
 
-function getIndexedBox(){
+function getIndexedBoxGeometry(){
     var geometry = new THREE.BufferGeometry();
     var positions = [
         -1, -1, -1,
@@ -120,12 +113,10 @@ function getIndexedBox(){
     ];
     geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
     geometry.setIndex( new THREE.BufferAttribute( new Uint32Array( indices ), 1 ) );
-    geometry = geometry.scale( 10, 10, 10 );
-    console.log( geometry );
-    return new THREE.Mesh( geometry, material );
+    return geometry;
 }
 
-function getNonIndexedBox(){
+function getNonIndexedBoxGeometry(){
     var geometry = new THREE.BufferGeometry();
     var positions = [
         -1, -1, -1,
@@ -166,7 +157,5 @@ function getNonIndexedBox(){
         1, 1, 1
     ];
     geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
-    geometry.scale( 10, 10, 10 );
-    console.log( geometry );
-    return new THREE.Mesh( geometry, material );
+    return geometry;
 }

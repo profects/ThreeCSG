@@ -8,26 +8,11 @@ window.ThreeBSP = (function() {
         BACK = 2,
         SPANNING = 3;
 
-    ThreeBSP = function( geometry ) {
+    ThreeBSP = function( object ) {
 
-        if ( geometry instanceof THREE.Geometry ) {
-            this.matrix = new THREE.Matrix4();
-            this.fromGeometry( geometry );
-        } else if ( geometry instanceof THREE.BufferGeometry ) {
-            this.matrix = new THREE.Matrix4();
-            this.fromBufferGeometry( geometry );
-        } else if ( geometry instanceof THREE.Mesh ) {
-            // #todo: add hierarchy support
-            geometry.updateMatrix();
-            this.matrix = geometry.matrix.clone();
-            geometry = geometry.geometry;
-        } else if ( geometry instanceof ThreeBSP.Node ) {
-            this.tree = geometry;
-            this.matrix = new THREE.Matrix4();
-            return this;
-        } else {
-            throw new Error('ThreeBSP: Given geometry is unsupported');
-        }
+        this.matrix = new THREE.Matrix4();
+
+        this.create( object );
 
     };
 
@@ -77,6 +62,29 @@ window.ThreeBSP = (function() {
         a = new ThreeBSP( a );
         a.matrix = this.matrix;
         return a;
+    };
+
+    ThreeBSP.prototype.create = function( object ){
+        if ( object instanceof THREE.Geometry ) {
+            this.fromGeometry( object );
+        } else if ( object instanceof THREE.BufferGeometry ) {
+            this.fromBufferGeometry( object );
+        } else if ( object instanceof THREE.Mesh ) {
+            // #todo: add hierarchy support
+            this.fromMesh( object );
+        } else if ( object instanceof ThreeBSP.Node ) {
+            this.tree = object;
+            return this;
+        } else {
+            throw new Error('ThreeBSP: is unable to create a BSP for the given input');
+        }
+    };
+
+    ThreeBSP.prototype.fromMesh = function( mesh ) {
+        var geometry = mesh.geometry;
+        mesh.updateMatrix();
+        this.matrix = mesh.matrix.clone();
+        this.create( geometry );
     };
 
     ThreeBSP.prototype.toGeometry = function() {
@@ -274,14 +282,17 @@ window.ThreeBSP = (function() {
 
             index = indices[i];
             vertex = new ThreeBSP.Vertex( positions[ index * 3 ], positions[ index * 3 + 1 ], positions[ index * 3 + 2 ] );
+            vertex.applyMatrix4(this.matrix);
             polygon.vertices.push( vertex );
 
             index = indices[i+1];
             vertex = new ThreeBSP.Vertex( positions[ index * 3 ], positions[ index * 3 + 1 ], positions[ index * 3 + 2 ] );
+            vertex.applyMatrix4(this.matrix);
             polygon.vertices.push( vertex );
 
             index = indices[i+2];
             vertex = new ThreeBSP.Vertex( positions[ index * 3 ], positions[ index * 3 + 1 ], positions[ index * 3 + 2 ] );
+            vertex.applyMatrix4(this.matrix);
             polygon.vertices.push( vertex );
 
             polygon.calculateProperties();
@@ -289,6 +300,7 @@ window.ThreeBSP = (function() {
             console.log( polygon );
         }
         this.tree = new ThreeBSP.Node( polygons );
+        console.log( this.tree );
     };
 
     ThreeBSP.prototype.fromNonIndexedBufferGeometry = function( geometry ){
@@ -300,12 +312,15 @@ window.ThreeBSP = (function() {
             polygon = new ThreeBSP.Polygon();
 
             vertex = new ThreeBSP.Vertex( positions[ i ], positions[ i + 1 ], positions[ i + 2 ] );
+            vertex.applyMatrix4(this.matrix);
             polygon.vertices.push( vertex );
 
             vertex = new ThreeBSP.Vertex( positions[ i + 3 ], positions[ i + 4 ], positions[ i + 5 ] );
+            vertex.applyMatrix4(this.matrix);
             polygon.vertices.push( vertex );
 
             vertex = new ThreeBSP.Vertex( positions[ i + 6 ], positions[ i + 7 ], positions[ i + 8 ] );
+            vertex.applyMatrix4(this.matrix);
             polygon.vertices.push( vertex );
 
             polygon.calculateProperties();

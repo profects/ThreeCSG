@@ -9,17 +9,13 @@ window.ThreeBSP = (function() {
         SPANNING = 3;
 
     ThreeBSP = function( geometry ) {
-        // Convert THREE.Geometry to ThreeBSP
-        var i, _length_i,
-            face, vertex, faceVertexUvs, uvs,
-            polygon,
-            polygons = [];
 
         if ( geometry instanceof THREE.Geometry ) {
             this.matrix = new THREE.Matrix4();
+            this.fromGeometry( geometry );
         } else if ( geometry instanceof THREE.BufferGeometry ) {
-            //this.matrix = new THREE.Matrix4;
-            throw new Error('ThreeBSP: Buffer geometry is not yet unsupported');
+            this.matrix = new THREE.Matrix4();
+            this.fromBufferGeometry( geometry );
         } else if ( geometry instanceof THREE.Mesh ) {
             // #todo: add hierarchy support
             geometry.updateMatrix();
@@ -33,34 +29,6 @@ window.ThreeBSP = (function() {
             throw new Error('ThreeBSP: Given geometry is unsupported');
         }
 
-        for ( i = 0, _length_i = geometry.faces.length; i < _length_i; i++ ) {
-            face = geometry.faces[i];
-            faceVertexUvs = geometry.faceVertexUvs[0][i];
-            polygon = new ThreeBSP.Polygon();
-
-            vertex = geometry.vertices[ face.a ];
-                            uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[0].x, faceVertexUvs[0].y ) : null;
-                            vertex = new ThreeBSP.Vertex( vertex.x, vertex.y, vertex.z, face.vertexNormals[0], uvs );
-            vertex.applyMatrix4(this.matrix);
-            polygon.vertices.push( vertex );
-
-            vertex = geometry.vertices[ face.b ];
-                            uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[1].x, faceVertexUvs[1].y ) : null;
-                            vertex = new ThreeBSP.Vertex( vertex.x, vertex.y, vertex.z, face.vertexNormals[2], uvs );
-            vertex.applyMatrix4(this.matrix);
-            polygon.vertices.push( vertex );
-
-            vertex = geometry.vertices[ face.c ];
-                            uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[2].x, faceVertexUvs[2].y ) : null;
-                            vertex = new ThreeBSP.Vertex( vertex.x, vertex.y, vertex.z, face.vertexNormals[2], uvs );
-            vertex.applyMatrix4(this.matrix);
-            polygon.vertices.push( vertex );
-
-            polygon.calculateProperties();
-            polygons.push( polygon );
-        }
-
-        this.tree = new ThreeBSP.Node( polygons );
     };
 
     ThreeBSP.prototype.subtract = function( other_tree ) {
@@ -175,6 +143,7 @@ window.ThreeBSP = (function() {
                 geometry.faceVertexUvs[0].push( vertexUvs );
             }
         }
+        console.log( geometry );
         return geometry;
     };
 
@@ -255,6 +224,107 @@ window.ThreeBSP = (function() {
         mesh.rotation.setFromRotationMatrix( this.matrix );
 
         return mesh;
+    };
+
+    ThreeBSP.prototype.fromGeometry = function( geometry ){
+        // Convert THREE.Geometry to ThreeBSP
+        var i, _length_i,
+            face, vertex, faceVertexUvs, uvs,
+            polygon,
+            polygons = [];
+
+        for ( i = 0, _length_i = geometry.faces.length; i < _length_i; i++ ) {
+            face = geometry.faces[i];
+            faceVertexUvs = geometry.faceVertexUvs[0][i];
+            polygon = new ThreeBSP.Polygon();
+
+            vertex = geometry.vertices[ face.a ];
+            uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[0].x, faceVertexUvs[0].y ) : null;
+            vertex = new ThreeBSP.Vertex( vertex.x, vertex.y, vertex.z, face.vertexNormals[0], uvs );
+            vertex.applyMatrix4(this.matrix);
+            polygon.vertices.push( vertex );
+
+            vertex = geometry.vertices[ face.b ];
+            uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[1].x, faceVertexUvs[1].y ) : null;
+            vertex = new ThreeBSP.Vertex( vertex.x, vertex.y, vertex.z, face.vertexNormals[1], uvs );
+            vertex.applyMatrix4(this.matrix);
+            polygon.vertices.push( vertex );
+
+            vertex = geometry.vertices[ face.c ];
+            uvs = faceVertexUvs ? new THREE.Vector2( faceVertexUvs[2].x, faceVertexUvs[2].y ) : null;
+            vertex = new ThreeBSP.Vertex( vertex.x, vertex.y, vertex.z, face.vertexNormals[2], uvs );
+            vertex.applyMatrix4(this.matrix);
+            polygon.vertices.push( vertex );
+
+            polygon.calculateProperties();
+            polygons.push( polygon );
+        }
+
+        this.tree = new ThreeBSP.Node( polygons );
+    };
+
+    ThreeBSP.prototype.fromIndexedBufferGeometry = function( geometry ){
+        var i, il, index, vertex, polygon,
+            indices = geometry.index.array,
+            positions = geometry.attributes.position.array,
+            polygons = [];
+
+        for( i = 0, il = indices.length; i < il; i+=3 ){
+            polygon = new ThreeBSP.Polygon();
+
+            index = indices[i];
+            vertex = new ThreeBSP.Vertex( positions[ index * 3 ], positions[ index * 3 + 1 ], positions[ index * 3 + 2 ] );
+            polygon.vertices.push( vertex );
+
+            index = indices[i+1];
+            vertex = new ThreeBSP.Vertex( positions[ index * 3 ], positions[ index * 3 + 1 ], positions[ index * 3 + 2 ] );
+            polygon.vertices.push( vertex );
+
+            index = indices[i+2];
+            vertex = new ThreeBSP.Vertex( positions[ index * 3 ], positions[ index * 3 + 1 ], positions[ index * 3 + 2 ] );
+            polygon.vertices.push( vertex );
+
+            polygon.calculateProperties();
+            polygons.push( polygon );
+            console.log( polygon );
+        }
+        this.tree = new ThreeBSP.Node( polygons );
+    };
+
+    ThreeBSP.prototype.fromNonIndexedBufferGeometry = function( geometry ){
+        var i, il, index, vertex, polygon,
+            positions = geometry.attributes.position.array,
+            polygons = [];
+
+        for( i = 0, il = positions.length; i < il; i+=9 ){
+            polygon = new ThreeBSP.Polygon();
+
+            vertex = new ThreeBSP.Vertex( positions[ i ], positions[ i + 1 ], positions[ i + 2 ] );
+            polygon.vertices.push( vertex );
+
+            vertex = new ThreeBSP.Vertex( positions[ i + 3 ], positions[ i + 4 ], positions[ i + 5 ] );
+            polygon.vertices.push( vertex );
+
+            vertex = new ThreeBSP.Vertex( positions[ i + 6 ], positions[ i + 7 ], positions[ i + 8 ] );
+            polygon.vertices.push( vertex );
+
+            polygon.calculateProperties();
+            polygons.push( polygon );
+        }
+        this.tree = new ThreeBSP.Node( polygons );
+    };
+
+    ThreeBSP.prototype.fromBufferGeometry = function( geometry ){
+
+        if( geometry.index === null ){
+
+            this.fromNonIndexedBufferGeometry( geometry );
+
+        }else{
+
+            this.fromIndexedBufferGeometry( geometry );
+
+        }
     };
 
     ThreeBSP.Polygon = function( vertices, normal, w ) {

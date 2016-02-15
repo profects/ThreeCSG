@@ -151,7 +151,6 @@ window.ThreeBSP = (function() {
                 geometry.faceVertexUvs[0].push( vertexUvs );
             }
         }
-        console.log( geometry );
         return geometry;
     };
 
@@ -297,10 +296,8 @@ window.ThreeBSP = (function() {
 
             polygon.calculateProperties();
             polygons.push( polygon );
-            console.log( polygon );
         }
         this.tree = new ThreeBSP.Node( polygons );
-        console.log( this.tree );
     };
 
     ThreeBSP.prototype.fromNonIndexedBufferGeometry = function( geometry ){

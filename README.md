@@ -22,3 +22,15 @@ const ThreeBSP = require('three-csg')(THREE);
 
 
 
+### Example
+```
+  const box = new THREE.Mesh(new THREE.BoxGeometry(500, 100, 100));
+  const sphere = new THREE.Mesh(new THREE.SphereGeometry(100, 50, 50));
+
+  const sBSP = new ThreeBSP(sphere);
+  const bBSP = new ThreeBSP(box);
+
+  const sub = bBSP.subtract(sBSP);
+  const newMesh = sub.toMesh();
+  
+  ```

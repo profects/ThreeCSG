@@ -1,12 +1,16 @@
-### My own little fork
+### Wilt/ThreeCSG Fork
 
-Changes:
+Wilt Changes:
 
 - Cleaned up code (typos and syntax)
 
 - Removed THREE.Face4 support
 
 - Added THREE.BufferGeometry support
+
+Richard changes   
+- Fix npm package install
+
 
 ### Install
 ```

@@ -1,3 +1,1 @@
-### My own little fork
-
-Just for some minor bug fixing...
+### See develop branch!

@@ -8,5 +8,12 @@ Changes:
 
 - Added THREE.BufferGeometry support
 
+### Import
+```
+import THREE from 'three';
+const ThreeBSP = require('three-csg')(THREE);
+
+```
+
 
 

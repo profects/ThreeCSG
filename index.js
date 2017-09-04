@@ -1,5 +1,4 @@
 'use strict';
-window.ThreeBSP = (function() {
 
     var ThreeBSP,
         EPSILON = 1e-5,
@@ -7,6 +6,11 @@ window.ThreeBSP = (function() {
         FRONT = 1,
         BACK = 2,
         SPANNING = 3;
+
+  module.exports = function( THREE ) {
+
+
+
 
     ThreeBSP = function( object ) {
 
@@ -696,6 +700,6 @@ window.ThreeBSP = (function() {
         if ( this.back ) this.back.clipTo( node );
     };
 
+ 
     return ThreeBSP;
-
-})();
+  }

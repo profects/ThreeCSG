@@ -8,6 +8,11 @@ Changes:
 
 - Added THREE.BufferGeometry support
 
+### Install
+```
+yarn add https://github.com/RichardLindhout/ThreeCSG\#develop
+```
+
 ### Import
 ```
 import THREE from 'three';

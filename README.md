@@ -14,7 +14,7 @@ Richard changes
 
 ### Install
 ```
-yarn add https:///github.com/profects/ThreeCSG#develop
+yarn add https://github.com/profects/ThreeCSG#develop
 ```
 
 ### Import

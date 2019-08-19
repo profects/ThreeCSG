@@ -1,5 +1,5 @@
 'use strict';
-window.ThreeBSP = (function(THREE) {
+module.exports = function( THREE ) {
 	var ThreeBSP,
 		EPSILON = 1e-5,
 		COPLANAR = 0,
@@ -691,4 +691,4 @@ window.ThreeBSP = (function(THREE) {
 	};
 
 	return ThreeBSP;
-})();
+}
